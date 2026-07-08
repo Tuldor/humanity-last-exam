@@ -30,7 +30,13 @@ def check_password():
         password = st.text_input("Contraseña", type="password", key="password_input")
 
         # Get the correct password from secrets or environment variable
-        correct_password = st.secrets.get("app_password", os.getenv("APP_PASSWORD", ""))
+        try:
+            correct_password = st.secrets.get("app_password", None)
+        except Exception:
+            correct_password = None
+
+        if not correct_password:
+            correct_password = os.getenv("APP_PASSWORD", "")
 
         if not correct_password:
             st.error("⚠️ No hay contraseña configurada. Contacta al administrador.")
