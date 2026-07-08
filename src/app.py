@@ -16,6 +16,42 @@ st.set_page_config(
     layout="wide",
 )
 
+
+# ── Authentication ──────────────────────────────────────────────────────────
+def check_password():
+    """Returns True if the user entered the correct password."""
+    if "password_correct" not in st.session_state:
+        st.session_state.password_correct = False
+
+    if not st.session_state.password_correct:
+        st.markdown("# 🔐 Acceso restringido")
+        st.info("Por favor, ingresa la contraseña para acceder a la aplicación.")
+
+        password = st.text_input("Contraseña", type="password", key="password_input")
+
+        # Get the correct password from secrets or environment variable
+        correct_password = st.secrets.get("app_password", os.getenv("APP_PASSWORD", ""))
+
+        if not correct_password:
+            st.error("⚠️ No hay contraseña configurada. Contacta al administrador.")
+            return False
+
+        if password:
+            if password == correct_password:
+                st.session_state.password_correct = True
+                st.rerun()
+            else:
+                st.error("❌ Contraseña incorrecta. Intenta de nuevo.")
+                return False
+
+    return st.session_state.password_correct
+
+
+# Check authentication before loading the rest of the app
+if not check_password():
+    st.stop()
+
+
 st.title("🧠 Humanity's Last Exam — Browser")
 
 
