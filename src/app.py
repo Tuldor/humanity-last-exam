@@ -4,6 +4,7 @@ import os
 import base64
 from pathlib import Path
 from io import BytesIO
+from i18n import get_text
 
 DATA_PATH = Path(__file__).parent.parent / "data" / "hle.parquet"
 HF_DATASET = "cais/hle"
@@ -15,6 +16,10 @@ st.set_page_config(
     page_icon="🧠",
     layout="wide",
 )
+
+# ── Initialize language in session state ────────────────────────────────────
+if "language" not in st.session_state:
+    st.session_state.language = "en"
 
 
 # ── Authentication ──────────────────────────────────────────────────────────
@@ -58,7 +63,8 @@ if not check_password():
     st.stop()
 
 
-st.title("🧠 Humanity's Last Exam — Browser")
+lang = st.session_state.language
+st.title(get_text("page_title", lang))
 
 
 # ── Dataset download / load ──────────────────────────────────────────────────
@@ -119,15 +125,15 @@ df = load_data()
 
 # ── Sidebar filters ──────────────────────────────────────────────────────────
 with st.sidebar:
-    st.header("Filtros")
+    st.header(get_text("filters_header", lang))
 
     # 1. Categoría
     all_categories = sorted(df["category"].dropna().unique().tolist())
     selected_categories = st.multiselect(
-        "Categoría",
+        get_text("category", lang),
         options=all_categories,
         default=[],
-        placeholder="Todas las categorías",
+        placeholder=get_text("category_placeholder", lang),
     )
 
     # 2. Tema (raw_subject) — dependiente de la categoría
@@ -138,33 +144,54 @@ with st.sidebar:
     all_subjects = sorted(subject_pool.tolist())
 
     selected_subjects = st.multiselect(
-        "Tema (raw_subject)",
+        get_text("theme", lang),
         options=all_subjects,
         default=[],
-        placeholder="Todos los temas",
+        placeholder=get_text("theme_placeholder", lang),
     )
 
     # 3. Tipo de respuesta
     all_answer_types = sorted(df["answer_type"].dropna().unique().tolist())
     selected_answer_types = st.multiselect(
-        "Tipo de respuesta",
+        get_text("answer_type", lang),
         options=all_answer_types,
         default=[],
-        placeholder="Todos los tipos",
+        placeholder=get_text("answer_type_placeholder", lang),
     )
 
     # 4. Tiene imagen
     has_image_filter = st.radio(
-        "¿Tiene imagen?",
-        options=["Todas", "Con imagen", "Sin imagen"],
+        get_text("has_image", lang),
+        options=[
+            get_text("has_image_all", lang),
+            get_text("has_image_with", lang),
+            get_text("has_image_without", lang),
+        ],
         index=0,
     )
 
     # 5. Búsqueda libre en el enunciado
-    search_text = st.text_input("Buscar en el enunciado", placeholder="palabras clave…")
+    search_text = st.text_input(
+        get_text("search_questions", lang),
+        placeholder=get_text("search_placeholder", lang),
+    )
+
+    # 6. Language selector
+    st.divider()
+    language_options = {"English": "en", "Español": "es"}
+    selected_lang_display = st.selectbox(
+        get_text("language", lang),
+        options=list(language_options.keys()),
+        index=0 if st.session_state.language == "en" else 1,
+        key="language_selector",
+    )
+    st.session_state.language = language_options[selected_lang_display]
+
+    if st.session_state.language != lang:
+        st.rerun()
 
     st.divider()
-    st.caption(f"Total en dataset: {len(df):,} preguntas")
+    st.caption(f"{get_text('total_dataset', lang)}: {len(df):,} {get_text('questions_unit', lang)}")
 
 
 # ── Apply filters ────────────────────────────────────────────────────────────
@@ -179,9 +206,12 @@ if selected_subjects:
 if selected_answer_types:
     filtered = filtered[filtered["answer_type"].isin(selected_answer_types)]
 
-if has_image_filter == "Con imagen":
+has_image_with = get_text("has_image_with", lang)
+has_image_without = get_text("has_image_without", lang)
+
+if has_image_filter == has_image_with:
     filtered = filtered[filtered["image"].notna() & (filtered["image"] != "")]
-elif has_image_filter == "Sin imagen":
+elif has_image_filter == has_image_without:
     filtered = filtered[filtered["image"].isna() | (filtered["image"] == "")]
 
 if search_text.strip():
@@ -189,10 +219,10 @@ if search_text.strip():
     filtered = filtered[mask]
 
 # ── Results header ───────────────────────────────────────────────────────────
-st.markdown(f"**{len(filtered):,} preguntas** coinciden con los filtros.")
+st.markdown(f"**{len(filtered):,}** {get_text('questions_match', lang)}")
 
 if filtered.empty:
-    st.warning("No hay preguntas que coincidan con los filtros seleccionados.")
+    st.warning(get_text("no_results", lang))
     st.stop()
 
 
@@ -202,16 +232,16 @@ total_pages = max(1, (len(filtered) - 1) // PAGE_SIZE + 1)
 
 col_left, col_mid, col_right = st.columns([2, 1, 2])
 with col_mid:
-    page = st.number_input("Página", min_value=1, max_value=total_pages, value=1, step=1)
+    page = st.number_input(get_text("page", lang), min_value=1, max_value=total_pages, value=1, step=1)
 
 page_df = filtered.iloc[(page - 1) * PAGE_SIZE : page * PAGE_SIZE].reset_index(drop=True)
 
-st.caption(f"Página {page} de {total_pages}")
+st.caption(f"{get_text('page', lang)} {page} {get_text('page_of', lang)} {total_pages}")
 st.divider()
 
 
 # ── Question cards ───────────────────────────────────────────────────────────
-def render_image(image_val):
+def render_image(image_val, lang):
     """Render image from base64 string or URL."""
     if not image_val or pd.isna(image_val):
         return
@@ -224,7 +254,7 @@ def render_image(image_val):
         try:
             st.image(image_val, use_container_width=True)
         except Exception:
-            st.caption("_(imagen no disponible)_")
+            st.caption(f"_({get_text('image_unavailable', lang)})_")
 
 
 for idx, row in page_df.iterrows():
@@ -236,37 +266,37 @@ for idx, row in page_df.iterrows():
     ):
         # Metadata row
         meta_cols = st.columns(3)
-        meta_cols[0].markdown(f"**Categoría:** {row.get('category', '—')}")
-        meta_cols[1].markdown(f"**Tema:** {row.get('raw_subject', '—')}")
-        meta_cols[2].markdown(f"**Tipo respuesta:** {row.get('answer_type', '—')}")
+        meta_cols[0].markdown(f"**{get_text('category_label', lang)}:** {row.get('category', '—')}")
+        meta_cols[1].markdown(f"**{get_text('theme_label', lang)}:** {row.get('raw_subject', '—')}")
+        meta_cols[2].markdown(f"**{get_text('answer_type_label', lang)}:** {row.get('answer_type', '—')}")
 
-        st.markdown(f"**Autor:** {row.get('author_name', '—')}")
-        st.markdown(f"**ID:** `{row.get('id', '—')}`")
+        st.markdown(f"**{get_text('author_label', lang)}:** {row.get('author_name', '—')}")
+        st.markdown(f"**{get_text('id_label', lang)}:** `{row.get('id', '—')}`")
 
         st.divider()
 
         # Question
-        st.markdown("**Pregunta:**")
+        st.markdown(f"**{get_text('question_label', lang)}:**")
         st.markdown(row.get("question", ""))
 
         # Image (if any)
         img = row.get("image", "")
         if img and not pd.isna(img):
-            st.markdown("**Imagen asociada:**")
-            render_image(img)
+            st.markdown(f"**{get_text('associated_image', lang)}:**")
+            render_image(img, lang)
 
         st.divider()
 
         # Answer (revealed on demand)
         answer_col, _ = st.columns([1, 2])
         with answer_col:
-            show_answer = st.checkbox("Mostrar respuesta", key=f"ans_{row.get('id', idx)}_{page}")
+            show_answer = st.checkbox(get_text("show_answer", lang), key=f"ans_{row.get('id', idx)}_{page}")
 
         if show_answer:
             if img and not pd.isna(img):
-                render_image(img)
-            st.markdown(f"**Respuesta:** {row.get('answer', '—')}")
+                render_image(img, lang)
+            st.markdown(f"**{get_text('answer_label', lang)}:** {row.get('answer', '—')}")
             rationale = row.get("rationale", "")
             if rationale and not pd.isna(rationale) and str(rationale).strip():
-                with st.expander("Razonamiento / Rationale"):
+                with st.expander(get_text("rationale_label", lang)):
                     st.markdown(str(rationale))
