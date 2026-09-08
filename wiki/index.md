@@ -10,3 +10,4 @@ Documentación del proyecto **Humanity's Last Exam**, una aplicación web local 
 - [Cómo usar la aplicación](04-uso.md)
 - [Arquitectura técnica](05-arquitectura.md)
 - [GitHub](06-github.md)
+- [Internacionalización (i18n)](07-internacionalizacion.md)

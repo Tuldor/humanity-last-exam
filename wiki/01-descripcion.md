@@ -4,7 +4,7 @@ Aplicación web local desarrollada con **Streamlit** para explorar las preguntas
 
 ## Para qué sirve
 
-HLE es un benchmark de inteligencia artificial creado por el Center for AI Safety (CAIS) formado por 2.500 preguntas de nivel experto en múltiples disciplinas. La aplicación permite navegar, filtrar y leer las preguntas y sus respuestas de forma cómoda sin necesidad de acceder a Hugging Face.
+HLE es un benchmark de inteligencia artificial creado por el Center for AI Safety (CAIS) formado por 2.500 preguntas de nivel experto en múltiples disciplinas. La aplicación permite navegar, filtrar y leer las preguntas y sus respuestas de forma cómoda sin necesidad de acceder a Hugging Face. La interfaz está disponible en **inglés y español**.
 
 ## Caso de uso
 

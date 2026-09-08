@@ -3,7 +3,8 @@
 ```
 Humanity Last Exam/
 ├── src/
-│   └── app.py              # Aplicación Streamlit
+│   ├── app.py              # Aplicación Streamlit principal
+│   └── i18n.py             # Sistema de internacionalización (inglés/español)
 ├── data/
 │   └── hle.parquet         # Dataset local (no versionado)
 ├── wiki/                   # Esta documentación
@@ -13,9 +14,11 @@ Humanity Last Exam/
 │   ├── 03-instalacion.md
 │   ├── 04-uso.md
 │   ├── 05-arquitectura.md
-│   └── 06-github.md
+│   ├── 06-github.md
+│   └── 07-internacionalizacion.md
 ├── .streamlit/
 │   └── config.toml         # Configuración de Streamlit
+├── streamlit_app.py        # Punto de entrada para Streamlit Cloud
 ├── .venv/                  # Entorno virtual Python (no versionado)
 ├── .gitignore
 └── Iniciar.command         # Script de arranque (doble clic en Finder)
@@ -25,11 +28,22 @@ Humanity Last Exam/
 
 ### src/app.py
 Aplicación Streamlit completa. Contiene:
+- Inicialización del idioma en session state
 - Flujo de descarga del dataset (primera ejecución)
 - Carga y caché del parquet local
-- Lógica de filtros (categoría, tema, tipo de respuesta, imagen, búsqueda libre)
+- Lógica de filtros (categoría, tema, tipo de respuesta, imagen, búsqueda libre, **idioma**)
 - Paginación
 - Renderizado de tarjetas de pregunta con imagen y respuesta
+- Integración con módulo de i18n para traducción de UI
+
+### src/i18n.py
+Sistema de internacionalización. Define:
+- Diccionario `TRANSLATIONS` con traducciones inglés/español
+- Función `get_text(key, language)` para acceder a traducciones
+- Todas las claves de UI (filtros, botones, mensajes, etiquetas)
+
+### streamlit_app.py
+Punto de entrada para Streamlit Cloud. Importa y ejecuta `src/app.py`.
 
 ### data/hle.parquet
 Dataset descargado de Hugging Face y persistido localmente. No se versiona en git. Contiene las 2.500 preguntas con todos sus campos excepto las columnas de imagen binaria (`image_preview`, `rationale_image`), que se descartan para reducir peso. Las imágenes se conservan en la columna `image` como cadenas base64.

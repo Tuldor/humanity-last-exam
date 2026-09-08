@@ -42,3 +42,14 @@ La carga del parquet se cachea para que los filtros respondan en tiempo real sin
 
 ### Filtro de tema dependiente
 El selector de `raw_subject` se recalcula dinámicamente según las categorías seleccionadas, evitando mostrar temas que no tienen preguntas en el contexto actual.
+
+### Sistema de i18n modular
+Las traducciones están centralizadas en `src/i18n.py` como un diccionario simple, permitiendo:
+- Agregar nuevos idiomas rápidamente
+- Mantener traducciones en un único lugar
+- Evitar condicionales de idioma esparcidos por el código
+
+El idioma se almacena en `session_state` para persistencia durante la sesión. La interfaz detecta cambios y re-renderiza automáticamente con `st.rerun()`.
+
+### Preguntas siempre en inglés
+El contenido del dataset (preguntas, respuestas, rationale) se muestra siempre en inglés, independientemente del idioma seleccionado. Solo la UI se traduce (filtros, botones, etiquetas).
