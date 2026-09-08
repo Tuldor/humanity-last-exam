@@ -11,3 +11,4 @@ Documentación del proyecto **Humanity's Last Exam**, una aplicación web local 
 - [Arquitectura técnica](05-arquitectura.md)
 - [GitHub](06-github.md)
 - [Internacionalización (i18n)](07-internacionalizacion.md)
+- [Despliegue en Streamlit Cloud](08-streamlit-cloud.md)

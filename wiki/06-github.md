@@ -34,5 +34,15 @@ cd humanity-last-exam
 # Subir cambios
 git add <ficheros>
 git commit -m "descripción"
-git push
+git push origin main
 ```
+
+## Despliegue automático
+
+Cada push a `main` activa un despliegue automático en Streamlit Cloud (~1-2 minutos).
+
+Ver [Despliegue en Streamlit Cloud](08-streamlit-cloud.md) para:
+- Primer despliegue
+- Configuración de secretos
+- Solución de problemas
+- Monitoreo
